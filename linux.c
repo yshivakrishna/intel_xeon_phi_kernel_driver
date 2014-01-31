@@ -48,6 +48,7 @@
 #include "mic/io_interface.h"
 #include "mic/mic_pm.h"
 #include "mic/micveth.h"
+#include "mic/micmem_io.h"
 
 MODULE_LICENSE("GPL");
 
@@ -108,7 +109,7 @@ mic_open(struct inode *inode, struct file *filp)
 
 	switch (MINOR(dev)) {
 	case 0:
-		return 0;
+		return micmem_fdopen(filp);
 	case 1:
 		return scif_fdopen(filp);
 	case 2:
@@ -126,12 +127,14 @@ mic_release(struct inode *inode, struct file *filp)
 
 	switch (MINOR(dev)) {
 	case 0:
-		if (filp->private_data == filp) {
+		if (((struct mic_fd_data*)(filp->private_data))->filp == filp) {
 			// Fasync is set
 			rc = fasync_helper(-1, filp, 0, &mic_data.dd_fasync);
 			mic_data.dd_fasync = NULL;
 		}
-		return rc;
+		if (rc)
+			return rc;
+		return micmem_fdclose(filp);
 	case 1:
 		return scif_fdclose(filp);
 	case 2:
@@ -168,7 +171,7 @@ mic_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	if (MINOR(dev) == 2)
 		return -EINVAL;
 
-	status = adapter_do_ioctl(cmd, arg);
+	status = adapter_do_ioctl(filp, cmd, arg);
 	return status;
 }
 
@@ -176,16 +179,19 @@ static int
 mic_fasync(int fd, struct file *filp, int on)
 {
 	int rc;
+	struct mic_fd_data *fd_data;
 
 	if ((rc = fasync_helper(fd, filp, on, &mic_data.dd_fasync)) < 0) {
 		return rc;
 	}
 
+	fd_data = (struct mic_fd_data*)filp->private_data;
+
 	if (on) {
 		rc = __f_setown(filp, task_pid(current), PIDTYPE_PID, 0);
-		filp->private_data = filp;
+		fd_data->filp = filp;
 	} else {
-		filp->private_data = NULL;
+		fd_data->filp = NULL;
 	}
 
 	return rc;

@@ -518,7 +518,7 @@ void adapter_init(void);
 int adapter_isr(mic_ctx_t *mic_ctx);
 int adapter_imsr(mic_ctx_t *mic_ctx);
 int adapter_remove(mic_ctx_t *mic_ctx);
-int adapter_do_ioctl(uint32_t cmd, uint64_t arg);
+int adapter_do_ioctl(struct file *filp, uint32_t cmd, uint64_t arg);
 int adapter_stop_device(mic_ctx_t *mic_ctx, int wait_reset, int reattempt);
 int adapter_probe(mic_ctx_t *mic_ctx);
 int adapter_post_boot_device(mic_ctx_t *mic_ctx);

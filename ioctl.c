@@ -43,6 +43,7 @@
 /* contains code to handle MIC IO control codes */
 
 #include "mic_common.h"
+#include "mic/micmem_io.h"
 
 static int do_send_flash_cmd(mic_ctx_t *mic_ctx, struct ctrlioctl_flashcmd *args);
 static int get_card_mem(mic_ctx_t *mic_ctx, struct ctrlioctl_cardmemcpy *args);
@@ -55,7 +56,7 @@ static int get_card_mem(mic_ctx_t *mic_ctx, struct ctrlioctl_cardmemcpy *args);
  RETURN_VALUE:: 0 if successful, non-zero if failure
 */
 int
-adapter_do_ioctl(uint32_t cmd, uint64_t arg)
+adapter_do_ioctl(struct file *f, uint32_t cmd, uint64_t arg)
 {
 	int status = 0;
 	mic_ctx_t *mic_ctx = NULL;
@@ -138,13 +139,9 @@ adapter_do_ioctl(uint32_t cmd, uint64_t arg)
 
 		break;
 	}
-
 	default:
-		printk("Invalid IOCTL\n");
-		status = -EINVAL;
-		break;
+		return micmem_ioctl(f, cmd, arg);
 	}
-
 	return status;
 }
 

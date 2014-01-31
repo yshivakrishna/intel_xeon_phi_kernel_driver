@@ -85,6 +85,8 @@ mic-objs += pm_pcstate.o
 mic-objs += vhost/mic_vhost.o
 mic-objs += vhost/mic_blk.o
 mic-objs += vmcore.o
+mic-objs += micmem.o
+mic-objs += micmem_io.o
 
 version-le = $(shell printf '%s\n' $(1) | sort -CV && echo t)
 ifeq ($(call version-le, 2.6.23 $(KERNELRELEASE)),t)
