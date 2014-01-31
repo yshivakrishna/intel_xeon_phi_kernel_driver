@@ -6,6 +6,9 @@ The new set of ioctls will allow for transferring data between the host and a MI
 New ioctls are found in include/mic/micmem_io.h
 
 
+Special thanks to our hardware sponsor aeoncomputing.com for providing us access to hardware during our development.
+
+
 Current features
 ================
 
