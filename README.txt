@@ -24,6 +24,17 @@ Future features
 - Make the code thread-friendly by adding fine-grained locking
 
 
+Building
+========
+
+Building has been tested on Linux kernel 2.6.32 on Red Hat systems nominally supported by MPSS 2.1. Build requirements are kernel header files and gcc.
+
+To build:
+
+    $ cd kmod
+    $ MICARCH=k1om make
+
+
 Starting
 ========
 
