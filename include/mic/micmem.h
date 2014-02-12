@@ -15,7 +15,7 @@
 #define __MICMEM_H__
 
 #include "mic_common.h"
-
+#include "micmem_const.h"
 /** micmem_ctx:
  * Memory context for a device.
  * Holds device-specific data used to perform DMA operations using the device.
@@ -25,6 +25,9 @@ struct micmem_ctx {
 	mic_ctx_t *mic_ctx;
 	struct dma_channel *h2d_ch; /* Channel reserved for host2dev */
 	struct dma_channel *d2h_ch; /* Channel reserved for dev2host */
+	/* secondary channels for dual channel */
+	struct dma_channel *h2d_ch2;
+	struct dma_channel *d2h_ch2;
 };
 
 /** dma_mem_range:
@@ -42,9 +45,11 @@ struct dma_mem_range { /* TODO: find best alignment */
 
 int micmem_get_mem_ctx(mic_ctx_t *mic_ctx, struct micmem_ctx *mem_ctx);
 void micmem_destroy_mem_ctx(struct micmem_ctx *mem_ctx);
-int micmem_map_range(mic_ctx_t *mic_ctx, void *host_mem, uint64_t len, struct dma_mem_range **out_range);
+int micmem_pin_range(void *host_vm, uint64_t len, struct scif_pinned_pages **pinned_pages);
+int micmem_map_range(mic_ctx_t *mic_ctx, struct scif_pinned_pages *pinned_pages, uint64_t offset, uint64_t len, struct dma_mem_range **out_range);
 void micmem_unmap_range(mic_ctx_t *mic_ctx, struct dma_mem_range *mem_range);
-int micmem_dev2host(struct micmem_ctx *mem_ctx, struct dma_mem_range *dest_mem_range, uint64_t range_offset, uint64_t source_dev, uint64_t size);
-int micmem_host2dev(struct micmem_ctx *mem_ctx, uint64_t dest_dev, struct dma_mem_range *src_mem_range, uint64_t range_offset, uint64_t size);
+void micmem_unpin_range(struct scif_pinned_pages *pinned_pages);
+int micmem_dev2host(struct micmem_ctx *mem_ctx, struct dma_mem_range *dest_mem_range, uint64_t range_offset, uint64_t source_dev, uint64_t size, int flags);
+int micmem_host2dev(struct micmem_ctx *mem_ctx, uint64_t dest_dev, struct dma_mem_range *src_mem_range, uint64_t range_offset, uint64_t size, int flags);
 
 #endif /* __MICMEM_H__ */

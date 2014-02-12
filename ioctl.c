@@ -2,6 +2,7 @@
  * Intel MIC Platform Software Stack (MPSS)
  *
  * Copyright 2010-2012 Intel Corporation.
+ * Copyright 2014 PathScale Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as

@@ -12,16 +12,18 @@ Special thanks to our hardware sponsor aeoncomputing.com for providing us access
 Current features
 ================
 
-- Memory pinning and mapping
-- DMA transfers
+- Memory pinning
+- Memory mapping
+- DMA transfers (single or double channel)
 
 
 Future features
 ===============
 
 - Make new ioctls fully independent of MPSS and device uOS
-- Improve speed by using two DMA channels
+- Improve transfer speed
 - Make the code thread-friendly by adding fine-grained locking
+- Restrict new features to k1om architecture
 
 
 Building
@@ -38,11 +40,11 @@ To build:
 Starting
 ========
 
-The module has only been tested on m1om devices. It doesn't contain checks against l1om.
+The module has only been tested on k1om devices. It doesn't contain checks against l1om.
 Apart from replacing the module, mpss needs to be running (this is TODO).
     /etc/init.d/mpss stop
     rmmod mic
-    insmod mic
+    insmod mic.ko
     /etc/init.d/mpss start
     
 
@@ -50,18 +52,19 @@ User-mode interface
 ===================
 
 The patch is entirely based on ioctls, piggybacking on /dev/mic/ctrl.
-ioctls are described in detail in include/mic/micmem_io.h. This file should be included from the program that's going to use micmem.
+ioctls are described in detail in include/mic/micmem_io.h and constants in include/mic/micmem_const.h . These two files should be included from the program that's going to use micmem.
+
+A single instance of /dev/mic/ctrl needs to be open regardless of the number of devices to use. To enable/disable a device, use IOCTL_MICMEM_OPENDEV and IOCTL_MICMEM_CLOSEDEV.
+
+The only two calls that don't depend on a device are IOCTL_MICMEM_PINMEM and IOCTL_MICMEM_UNPINMEM. They lock/unlock the memory in order use it with a device later.
+Pinned memory needs to be mapped to a particular device using IOCTL_MICMEM_MAPRANGE and IOCTL_MICMEM_UNMAPRANGE. These calls will *only* map memory pinned with IOCTL_MICMEM_PINMEM.
+
+The commands IOCTL_MICMEM_HOST2DEV and IOCTL_MICMEM_DEV2HOST perform the actual transfer. They accept a flags argument, where the programmer can specify the number of channels to use simultaneously (MICMEM_AUTO, MICMEM_SINGLE, MICMEM_DUAL). The calls operate *only* on host memory ranges previously mapped using IOCTL_MICMEM_MAPRANGE to the appropriate device.
 
 All ioctls return 0 on success. Most commands dealing with memory assume that memory is aligned to page size (4096B).
 However, micmem detects if host memory is using huge pages and can improve transfer speed by reducing number of dma transfers, therefore it's recommended to align all memory to 2MiB boundaries (e.g. using posix_memalign()).
 
-The model of micmem assumes that a single open fd can be assigned to at most 1 device. To use multiple devices simultaneously, /dev/mic/ctrl must be opened multiple times.
-The first command before any DMA actions is selecting the device using IOCTL_MICMEM_OPENDEV. The last command should be IOCTL_MICMEM_CLOSEDEV.
-
-The transfer commands IOCTL_MICMEM_HOST2DEV and IOCTL_MICMEM_DEV2HOST can only operate on host memory ranges previously mapped using IOCTL_MICMEM_MAPRANGE. Memory can be unmapped with IOCTL_MICMEM_UNMAPRANGE.
-
 All operations are synchronous.
-
 
 
 Based on Intel kmod version 2.1.6720-19
