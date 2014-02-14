@@ -1,38 +1,35 @@
 /*
- * Intel MIC Platform Software Stack (MPSS)
- *
- * Copyright 2010-2012 Intel Corporation.
+ * Copyright 2010-2013 Intel Corporation.
  *
  * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License, version 2, as
- * published by the Free Software Foundation.
+ * it under the terms of the GNU General Public License, version 2,
+ * as published by the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA.
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * Disclaimer: The codes contained in these modules may be specific to
- * the Intel Software Development Platform codenamed: Knights Ferry, and
- * the Intel product codenamed: Knights Corner, and are not backward
+ * the Intel Software Development Platform codenamed Knights Ferry,
+ * and the Intel product codenamed Knights Corner, and are not backward
  * compatible with other Intel products. Additionally, Intel will NOT
  * support the codes or instruction set in future products.
  *
  * Intel offers no warranty of any kind regarding the code. This code is
  * licensed on an "AS IS" basis and Intel is not obligated to provide
- * any support, assistance, installation, training, or other services of
- * any kind. Intel is also not obligated to provide any updates,
+ * any support, assistance, installation, training, or other services
+ * of any kind. Intel is also not obligated to provide any updates,
  * enhancements or extensions. Intel specifically disclaims any warranty
  * of merchantability, non-infringement, fitness for any particular
  * purpose, and any other warranty.
  *
- * Further, Intel disclaims all liability of any kind, including but not
- * limited to liability for infringement of any proprietary rights,
+ * Further, Intel disclaims all liability of any kind, including but
+ * not limited to liability for infringement of any proprietary rights,
  * relating to the use of the code, even if Intel is notified of the
  * possibility of such liability. Except as expressly stated in an Intel
  * license agreement provided with this code and agreed upon with Intel,
@@ -52,6 +49,7 @@
 #include <linux/hugetlb.h>
 #endif
 #endif
+#include "scif.h"
 #include <linux/errno.h>
 #include <linux/hardirq.h>
 #include <linux/types.h>
@@ -358,7 +356,7 @@ struct reg_range_t {
 	dma_addr_t		*dma_addr;
 
 	/* Array specifying number of pages for each physical address */
-	int64_t				*num_pages;
+	int				*num_pages;
 } __attribute__ ((packed));
 
 
@@ -502,6 +500,7 @@ int __scif_readfrom(scif_epd_t epd, off_t loffset, size_t len,
 		off_t roffset, int flags)
 {
 	int err;
+
 	pr_debug("SCIFAPI readfrom: ep %p loffset 0x%lx len 0x%lx"
 		" offset 0x%lx flags 0x%x\n", 
 		epd, loffset, len, roffset, flags);
@@ -529,6 +528,7 @@ int __scif_writeto(scif_epd_t epd, off_t loffset, size_t len,
 				off_t roffset, int flags)
 {
 	int err;
+
 	pr_debug("SCIFAPI writeto: ep %p loffset 0x%lx len 0x%lx"
 		" roffset 0x%lx flags 0x%x\n", 
 		epd, loffset, len, roffset, flags);
@@ -555,11 +555,15 @@ static __always_inline
 int __scif_vreadfrom(scif_epd_t epd, void *addr, size_t len, off_t roffset, int flags)
 {
 	int err;
+
 	pr_debug("SCIFAPI vreadfrom: ep %p addr %p len 0x%lx"
 		" roffset 0x%lx flags 0x%x\n", 
 		epd, addr, len, roffset, flags);
 
 	if (is_unaligned((off_t)addr, roffset)) {
+		if (len > MAX_UNALIGNED_BUF_SIZE)
+			flags &= ~SCIF_RMA_USECACHE;
+
 		while(len > MAX_UNALIGNED_BUF_SIZE) {
 			err = micscif_rma_copy(epd, 0, addr,
 				MAX_UNALIGNED_BUF_SIZE,
@@ -587,6 +591,9 @@ int __scif_vwriteto(scif_epd_t epd, void *addr, size_t len, off_t roffset, int f
 		epd, addr, len, roffset, flags);
 
 	if (is_unaligned((off_t)addr, roffset)) {
+		if (len > MAX_UNALIGNED_BUF_SIZE)
+			flags &= ~SCIF_RMA_USECACHE;
+
 		while(len > MAX_UNALIGNED_BUF_SIZE) {
 			err = micscif_rma_copy(epd, 0, addr,
 				MAX_UNALIGNED_BUF_SIZE,
@@ -623,7 +630,7 @@ int micscif_pci_info(uint16_t node, struct scif_pci_info *dev);
 #define RMA_SET_NR_PAGES(addr, nr_pages) ((addr) = (((nr_pages) & 0xFFFULL) << RMA_HUGE_NR_PAGE_SHIFT) | ((uint64_t)(addr)))
 #define RMA_GET_ADDR(addr) ((addr) & ~(RMA_HUGE_NR_PAGE_MASK))
 
-extern int mic_huge_page_enable;
+extern bool mic_huge_page_enable;
 
 #define SCIF_HUGE_PAGE_SHIFT	21
 

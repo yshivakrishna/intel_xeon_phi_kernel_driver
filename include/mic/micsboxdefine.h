@@ -1,38 +1,35 @@
 /*
- * Intel MIC Platform Software Stack (MPSS)
- *
- * Copyright 2010-2012 Intel Corporation.
+ * Copyright 2010-2013 Intel Corporation.
  *
  * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License, version 2, as
- * published by the Free Software Foundation.
+ * it under the terms of the GNU General Public License, version 2,
+ * as published by the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA.
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * Disclaimer: The codes contained in these modules may be specific to
- * the Intel Software Development Platform codenamed: Knights Ferry, and
- * the Intel product codenamed: Knights Corner, and are not backward
+ * the Intel Software Development Platform codenamed Knights Ferry,
+ * and the Intel product codenamed Knights Corner, and are not backward
  * compatible with other Intel products. Additionally, Intel will NOT
  * support the codes or instruction set in future products.
  *
  * Intel offers no warranty of any kind regarding the code. This code is
  * licensed on an "AS IS" basis and Intel is not obligated to provide
- * any support, assistance, installation, training, or other services of
- * any kind. Intel is also not obligated to provide any updates,
+ * any support, assistance, installation, training, or other services
+ * of any kind. Intel is also not obligated to provide any updates,
  * enhancements or extensions. Intel specifically disclaims any warranty
  * of merchantability, non-infringement, fitness for any particular
  * purpose, and any other warranty.
  *
- * Further, Intel disclaims all liability of any kind, including but not
- * limited to liability for infringement of any proprietary rights,
+ * Further, Intel disclaims all liability of any kind, including but
+ * not limited to liability for infringement of any proprietary rights,
  * relating to the use of the code, even if Intel is notified of the
  * possibility of such liability. Except as expressly stated in an Intel
  * license agreement provided with this code and agreed upon with Intel,
@@ -76,14 +73,19 @@
 #define SBOX_SICR1						0x0000901C
 #define SBOX_SICC1						0x00009028
 #ifdef CONFIG_MK1OM
-#define	SBOX_SDBIC0						0x0000CC90
-#define	SBOX_SDBIC1						0x0000CC94
-#define	SBOX_SDBIC2						0x0000CC98
-#define	SBOX_SDBIC3						0x0000CC9C
+#define SBOX_PMU_PERIOD_SEL             0x00001070
+#define SBOX_THERMAL_STATUS_INTERRUPT   0x0000107C
+#define SBOX_THERMAL_STATUS_2           0x00001080
+#define SBOX_THERMAL_TEST_2             0x00001084
 #define SBOX_COREFREQ					0x00004100
 #define SBOX_COREVOLT					0x00004104
 #define SBOX_MEMORYFREQ					0x00004108
 #define SBOX_MEMVOLT					0x0000410C
+//add defines used by drivers that are the same as DOORBELL_INTX
+#define SBOX_SDBIC0                     0x0000CC90
+#define SBOX_SDBIC1                     0x0000CC94
+#define SBOX_SDBIC2                     0x0000CC98
+#define SBOX_SDBIC3                     0x0000CC9C
 #else
 #define SBOX_SDBIC0						0x00009030
 #define SBOX_SDBIC1						0x00009034
@@ -93,6 +95,8 @@
 #define SBOX_COREVOLT					0x00004044
 #define SBOX_MEMORYFREQ					0x00004048
 #define SBOX_MEMVOLT					0x0000404C
+#define SBOX_RSC0                       0x0000CC10
+#define SBOX_RSC1                       0x0000CC14
 
 #endif
 #define SBOX_MXAR0						0x00009040
@@ -247,8 +251,6 @@
 #define	SBOX_SBQ_FLUSH				                0x0000B1A0 // Pseudo-register, not autogen, must add manually
 #define SBOX_TLB_FLUSH						0x0000B1A4
 #define SBOX_GTT_PHY_BASE					0x0000C118
-#define SBOX_RSC0						0x0000CC10
-#define SBOX_RSC1						0x0000CC14
 #define SBOX_EMON_CNT0						0x0000CC28
 #define SBOX_EMON_CNT1						0x0000CC2C
 #define SBOX_EMON_CNT2						0x0000CC30

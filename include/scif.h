@@ -1,38 +1,35 @@
 /*
- * Intel MIC Platform Software Stack (MPSS)
+ * Copyright 2010-2013 Intel Corporation.
  *
- * Copyright 2010-2012 Intel Corporation.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2,
+ * as published by the Free Software Foundation.
  *
- * This library is free software; you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation, version 2.1.
- *
- * This library is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * Lesser General Public License for more details.
+ * General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * Disclaimer: The codes contained in these modules may be specific to
- * the Intel Software Development Platform codenamed: Knights Ferry, and
- * the Intel product codenamed: Knights Corner, and are not backward
+ * the Intel Software Development Platform codenamed Knights Ferry,
+ * and the Intel product codenamed Knights Corner, and are not backward
  * compatible with other Intel products. Additionally, Intel will NOT
  * support the codes or instruction set in future products.
  *
  * Intel offers no warranty of any kind regarding the code. This code is
  * licensed on an "AS IS" basis and Intel is not obligated to provide
- * any support, assistance, installation, training, or other services of
- * any kind. Intel is also not obligated to provide any updates,
+ * any support, assistance, installation, training, or other services
+ * of any kind. Intel is also not obligated to provide any updates,
  * enhancements or extensions. Intel specifically disclaims any warranty
  * of merchantability, non-infringement, fitness for any particular
  * purpose, and any other warranty.
  *
- * Further, Intel disclaims all liability of any kind, including but not
- * limited to liability for infringement of any proprietary rights,
+ * Further, Intel disclaims all liability of any kind, including but
+ * not limited to liability for infringement of any proprietary rights,
  * relating to the use of the code, even if Intel is notified of the
  * possibility of such liability. Except as expressly stated in an Intel
  * license agreement provided with this code and agreed upon with Intel,
@@ -48,18 +45,10 @@
 #ifndef __SCIF_H__
 #define __SCIF_H__
 
-#ifdef __KERNEL__
 #include <linux/types.h>
 #include <linux/errno.h>
 #include <linux/poll.h>
 #include <linux/pci.h>
-#else /* __KERNEL__ */
-#include <stdint.h>
-#include <unistd.h>
-#include <errno.h>
-#include <sys/select.h>
-#include <poll.h>
-#endif /* __KERNEL__ */
 
 #ifdef __cplusplus
 extern "C" {
@@ -218,9 +207,6 @@ enum {
 #define SCIF_PORT_RSVD		1088
 //! @endcond
 
-#ifndef __KERNEL__
-typedef int scif_epd_t;
-#else /* __KERNEL__ */
 typedef struct endpt *scif_epd_t;
 
 typedef struct scif_pinned_pages *scif_pinned_pages_t;
@@ -237,15 +223,12 @@ struct scif_range {
 				 * connection on MIC.
 				 */
 };
-#endif /* __KERNEL__ */
 
 struct scif_pollepd {
 	scif_epd_t epd;   /* endpoint descriptor */
 	short events;     /* requested events */
 	short revents;    /* returned events */
 };
-
-#ifdef __KERNEL__
 enum scif_event_type {
 	SCIF_NODE_ADDED = 1<<0,
 	SCIF_NODE_REMOVED = 1<<1
@@ -263,7 +246,6 @@ struct scif_callback {
 	struct list_head	list_member;
 	scif_callback_t		callback_handler;
 };
-#endif
 
 #define SCIF_OPEN_FAILED ((scif_epd_t)-1)
 #define SCIF_REGISTER_FAILED ((off_t)-1)
@@ -815,132 +797,6 @@ int prot_flags, int map_flags);
  */
 int scif_unregister(scif_epd_t epd, off_t offset, size_t len);
 
-#ifndef __KERNEL__
-/**
- * scif_mmap - Map pages in virtual address space to a remote window
- *	\param addr		virtual address range base address
- *	\param len		length of range to be mapped
- *	\param prot_flags	read/write protection flags
- *	\param map_flags	mapping flags
- *	\param epd		endpoint descriptor
- *	\param offset		offset into remote registered address space
- *
- * The scif_mmap() function establishes a mapping between those whole pages of
- * the process starting at address pa and continuing for len bytes, and those
- * whole physical pages represented by pages of the registered address space of
- * the peer of the endpoint epd, starting at offset and continuing for len
- * bytes. The value of pa, further described below, is a function of the
- * parameters addr and len, and the value of map_flags. offset and len are
- * constrained to be multiples of the page size. A successful scif_mmap() call
- * returns pa as its result.
- *
- * Each of the pages in the specified range [offset,offset+len-1] must be
- * within some registered window on the remote node. The range may intersect
- * multiple registered windows, but only if those windows are contiguous in the
- * registered address space.
- *
- * When SCIF_MAP_FIXED is set in the flags argument, pa shall be addr exactly,
- * and addr is constrained to be a multiple of the page size. The mapping
- * established by scif_mmap() will replace any existing mappings for those
- * pages of the address space of the process starting at addr and continuing
- * for len bytes.
- *
- * When SCIF_MAP_FIXED is not set, the implementation uses addr in an
- * implementation-defined manner to arrive at pa. The pa so chosen will be an
- * area of the address space that the implementation deems suitable for a
- * mapping of len bytes. An addr value of 0 is interpreted as granting the
- * implementation complete freedom in selecting pa, subject to constraints
- * described below. A non-zero value of addr is taken to be a suggestion
- * of a process address near which the mapping should be placed. When the
- * implementation selects a value for pa, it never places a mapping at address
- * 0, nor does it replace any extant mapping. In all cases, pa will be a
- * multiple of the page size.
- *
- * On successful return, CPU accesses to addresses within the mapped virtual
- * address range will read or write data at corresponding memory locations of
- * the remote node.
- *
- * The remote physical pages of a mapping created by scif_mmap() remain
- * available, and are not reused by the memory subsystem of the remote node,
- * until the mapping is changed by a subsequent call to scif_mmap(),
- * scif_munmap(), or standard functions such as mmap() and munmap().
- *
- * Mapped regions of a process are automatically unmapped when the process is
- * terminated. However, closing an endpoint does not automatically unmap any
- * region.
- *
- * prot_flags has one or more of the following possible values:
- *- SCIF_PROT_READ: allow the mapping if the referenced window has the
- *  SCIF_PROT_READ flag.
- *- SCIF_PROT_WRITE: allow the mapping if the referenced window has the
- *  SCIF_PROT_WRITE flag.
- *
- * The map_flags argument is formed by OR'ing together zero or more of the
- * following values:
- *- SCIF_MAP_FIXED: interpret addr exactly
- *
- *\return
- * Upon successful completion, scif_mmap() returns the address at which the
- * mapping was placed (pa); otherwise SCIF_MMAP_FAILED (that is (void *)-1) is
- * returned and errno is set to indicate the error.
- *\par Errors:
- *- EACCESS
- * - prot flags is not compatible with registered window protection
- *- EBADF
- * - epd is not a valid endpoint descriptor
- *- ECONNRESET
- * - A connection was forcibly closed by a peer.
- *- ENOMEM
- * - Insufficient kernel memory was available.
- *- EINVAL
- * - epd is not a valid endpoint descriptor, or
- * - map_flags is invalid, or
- * - prot_flags is invalid , or
- * - SCIF_MAP_FIXED is set and addr is not a multiple of the page size, or
- * - offset is not a multiple of the page size, or
- * - len is not a multiple of the page size
- *- ENODEV
- * - The remote node is lost.
- *- ENOTCONN
- * - The endpoint is not connected
- *- ENOTTY
- * - epd is not a valid endpoint descriptor
- *- ENXIO
- * - Addresses in the range [offset,offset+len-1] are invalid for the
-registered
- *		address space of the peer of epd, or
- * - offset is negative
- */
-void *scif_mmap(void *addr, size_t len, int prot_flags, int map_flags,
-scif_epd_t epd, off_t offset);
-
-/**
- * scif_munmap - Remove the mapping to a remote window
- *	\param addr			starting address of range to unmap
- *	\param len			length of range to unmap
- *
- * scif_munmap() removes any mapping to those entire pages containing any
- * portion of the address space, starting at addr and continuing for len bytes.
- * Subsequent reference to those pages may result in the generation of a signal
- * or error.
- *
- * If a page in the specified range was not mapped by scif_mmap(), the effect
- * will be as if the standard mmap() function were called on that page.
- *
- * All mapped regions of a process are automatically unmapped when the process
- * is terminated.
- *
- *\return
- * Upon successful completion, scif_unmap() returns 0. Otherwise -1 is
- * returned, and errno is set to indicate the error.
- *
- *\par Errors:
- *- EINVAL
- * - addr is not a multiple of the page size, or
- * - len is not a multiple of the page size
- */
-int scif_munmap(void *addr, size_t len);
-#endif
 
 /**
  * scif_readfrom - Copy from a remote address space
@@ -1458,25 +1314,7 @@ uint64_t rval, int flags);
  */
 int scif_get_nodeIDs(uint16_t *nodes, int len, uint16_t *self);
 
-#ifndef __KERNEL__
-/**
- * scif_get_fd - Get file descriptor from endpoint descriptor
- *	\param epd		endpoint descriptor
- *
- * scif_get_fd() returns the file descriptor which backs a specified endpoint
- * descriptor, epd. The file descriptor returned should only be used as a
- * parameter to poll() or select().
- *
- *\return
- * scif_get_fd() returns the file descriptor.  There are no errors.
- */
-static inline int scif_get_fd(scif_epd_t epd)
-{
-	return (int) epd;
-}
-#endif
 
-#ifdef __KERNEL__
 /**
  * scif_pin_pages - Pin a set of pages
  * 	\param addr		Virtual address of range to pin
@@ -1720,7 +1558,6 @@ int scif_get_pages(
  */
 int scif_put_pages(
        struct scif_range *pages);
-#endif /* __KERNEL__ */
 
 /**
  * scif_poll - Wait for some event on an endpoint
@@ -1825,7 +1662,6 @@ scif_poll(
  * - There was no space to allocate file descriptor tables.
 */
 
-#ifdef __KERNEL__
 int
 scif_event_register(
 	scif_callback_t handler);
@@ -1892,7 +1728,6 @@ scif_pci_info(
 	uint16_t node,
 	struct scif_pci_info *dev);
 
-#endif /* __KERNEL__ */
 
 #ifdef __cplusplus
 } /* extern "C" */

@@ -34,7 +34,7 @@ Building has been tested on Linux kernel 2.6.32 on Red Hat systems nominally sup
 To build:
 
     $ cd kmod
-    $ MICARCH=k1om make
+    $ MIC_CARD_ARCH=k1om make
 
 The module will compile with MICARCH=l1om, but without any micmem features.
 
@@ -68,4 +68,4 @@ However, micmem detects if host memory is using huge pages and can improve trans
 All operations are synchronous.
 
 
-Based on Intel kmod version 2.1.6720-19
+Based on Intel kmod version 3.1-0.1.build0

@@ -1,38 +1,35 @@
 /*
- * Intel MIC Platform Software Stack (MPSS)
- *
- * Copyright 2010-2012 Intel Corporation.
+ * Copyright 2010-2013 Intel Corporation.
  *
  * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License, version 2, as
- * published by the Free Software Foundation.
+ * it under the terms of the GNU General Public License, version 2,
+ * as published by the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA.
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * Disclaimer: The codes contained in these modules may be specific to
- * the Intel Software Development Platform codenamed: Knights Ferry, and
- * the Intel product codenamed: Knights Corner, and are not backward
+ * the Intel Software Development Platform codenamed Knights Ferry,
+ * and the Intel product codenamed Knights Corner, and are not backward
  * compatible with other Intel products. Additionally, Intel will NOT
  * support the codes or instruction set in future products.
  *
  * Intel offers no warranty of any kind regarding the code. This code is
  * licensed on an "AS IS" basis and Intel is not obligated to provide
- * any support, assistance, installation, training, or other services of
- * any kind. Intel is also not obligated to provide any updates,
+ * any support, assistance, installation, training, or other services
+ * of any kind. Intel is also not obligated to provide any updates,
  * enhancements or extensions. Intel specifically disclaims any warranty
  * of merchantability, non-infringement, fitness for any particular
  * purpose, and any other warranty.
  *
- * Further, Intel disclaims all liability of any kind, including but not
- * limited to liability for infringement of any proprietary rights,
+ * Further, Intel disclaims all liability of any kind, including but
+ * not limited to liability for infringement of any proprietary rights,
  * relating to the use of the code, even if Intel is notified of the
  * possibility of such liability. Except as expressly stated in an Intel
  * license agreement provided with this code and agreed upon with Intel,
@@ -101,6 +98,8 @@
 #else
 #define TEST_LOOP 2000
 #endif
+
+#define IS_USER_BUFFER true
 
 //#define P2P_HACK 0
 #include "scif.h"
@@ -230,9 +229,9 @@ enum scif_state {
 	SCIFDEV_STOPPED
 };
 
-extern int mic_p2p_enable;
-extern int mic_p2p_proxy_enable;
-extern int mic_reg_cache_enable;
+extern bool mic_p2p_enable;
+extern bool mic_p2p_proxy_enable;
+extern bool mic_reg_cache_enable;
 /* p2p mapping from node id to peer id */
 struct scif_p2p_info {
 	int		    ppi_peer_id;
@@ -476,7 +475,6 @@ struct endpt {
 	struct endpt		*listenep;	/* associated listen ep */
 };
 
-
 static __always_inline void
 micscif_queue_for_cleanup(struct reg_range_t *window, struct list_head *list)
 {
@@ -537,6 +535,7 @@ int __scif_get_pages(scif_epd_t epd, off_t offset, size_t len,
 struct scif_range **pages);
 int __scif_put_pages(struct scif_range *pages);
 int __scif_flush(scif_epd_t epd);
+
 void micscif_misc_handler(struct work_struct *work);
 
 uint16_t rsrv_scif_port(uint16_t port);

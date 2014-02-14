@@ -1,38 +1,35 @@
 /*
- * Intel MIC Platform Software Stack (MPSS)
- *
- * Copyright 2010-2012 Intel Corporation.
+ * Copyright 2010-2013 Intel Corporation.
  *
  * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License, version 2, as
- * published by the Free Software Foundation.
+ * it under the terms of the GNU General Public License, version 2,
+ * as published by the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA.
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * Disclaimer: The codes contained in these modules may be specific to
- * the Intel Software Development Platform codenamed: Knights Ferry, and
- * the Intel product codenamed: Knights Corner, and are not backward
+ * the Intel Software Development Platform codenamed Knights Ferry,
+ * and the Intel product codenamed Knights Corner, and are not backward
  * compatible with other Intel products. Additionally, Intel will NOT
  * support the codes or instruction set in future products.
  *
  * Intel offers no warranty of any kind regarding the code. This code is
  * licensed on an "AS IS" basis and Intel is not obligated to provide
- * any support, assistance, installation, training, or other services of
- * any kind. Intel is also not obligated to provide any updates,
+ * any support, assistance, installation, training, or other services
+ * of any kind. Intel is also not obligated to provide any updates,
  * enhancements or extensions. Intel specifically disclaims any warranty
  * of merchantability, non-infringement, fitness for any particular
  * purpose, and any other warranty.
  *
- * Further, Intel disclaims all liability of any kind, including but not
- * limited to liability for infringement of any proprietary rights,
+ * Further, Intel disclaims all liability of any kind, including but
+ * not limited to liability for infringement of any proprietary rights,
  * relating to the use of the code, even if Intel is notified of the
  * possibility of such liability. Except as expressly stated in an Intel
  * license agreement provided with this code and agreed upon with Intel,
@@ -68,6 +65,9 @@
 
 #define PM_ENTRY PM_DEBUG("==> %s\n", __func__)
 #define PM_EXIT PM_DEBUG("<== %s\n", __func__)
+#define PM_MAJOR_VERSION 1
+#define PM_MINOR_VERSION 0
+
 
 typedef enum _PM_MESSAGE {
 	PM_MESSAGE_PC3READY,
@@ -130,10 +130,18 @@ typedef struct _pm_msg_unit_test
 	void * buf;
 } pm_msg_unit_test;
 
+typedef struct _pm_version
+{
+	uint16_t major_version;
+	uint16_t minor_version;
+
+} pm_version;
+
 typedef struct _pm_msg_pm_options
 {
 	uint8_t pc3_enabled;
 	uint8_t pc6_enabled;
+	pm_version version;
 } pm_msg_pm_options;
 
 #ifndef _MIC_SCIF_
