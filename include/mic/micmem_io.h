@@ -2,6 +2,9 @@
  * Copyright (C) 2014 PathScale Inc. All Rights Reserved.
  */
 
+/* micmem_io is a layer for accessing micmem using an IOCTL abstraction. This
+ * layer performs most input validation and ensures thread-safety.
+ */
 
 #ifndef __MICMEM_IO_H__
 #define __MICMEM_IO_H__
@@ -16,6 +19,7 @@
  */
 struct mic_fd_data {
 	struct file *filp;	/* data used for fasync state (see ioctl.c) */
+#ifdef CONFIG_MK1OM
 	/* currently open devices */
 	struct micmem_ctx *mem_ctx[MAX_BOARD_SUPPORTED];
 
@@ -23,8 +27,10 @@ struct mic_fd_data {
 	struct list_head range_list;
 	/* list of micmem_pinned_entry attached to open dev */
 	struct list_head pinned_list;
+#endif /* CONFIG_MK1OM */
 };
 
+#ifdef CONFIG_MK1OM
 /** struct micmem_range_entry:
  * data structure associating a user-visible address (key) to
  * struct dma_mem_range instances
@@ -58,6 +64,8 @@ int __micmem_unmap_range(struct mic_fd_data *fd_data, uint32_t bdnum, void *uvad
 int __micmem_dev2host(struct mic_fd_data *fd_data, uint32_t bdnum, void *dest, uint64_t dest_offset, uint64_t source_dev, uint64_t size, int flags);
 int __micmem_host2dev(struct mic_fd_data *fd_data, uint32_t bdnum, uint64_t dest_dev, void *src, uint64_t src_offset, uint64_t size, int flags);
 
+#endif /* CONFIG_MK1OM */
+
 int micmem_ioctl(struct file *filp, uint32_t cmd, uint64_t arg);
 		
 int micmem_fdopen(struct file *filp);
@@ -69,6 +77,10 @@ int micmem_fdclose(struct file *filp);
 #include "micmem_const.h"
 
 #endif /* __KERNEL__ */
+
+
+#if !defined(__KERNEL__) || defined(CONFIG_MK1OM)
+
 /* IOCTL interface */
 
 /**
@@ -215,4 +227,6 @@ struct ctrlioctl_micmem_unmaprange {
 	void *addr;
 };
 
-#endif
+#endif /* !__KERNEL__ || CONFIG_MK1OM */
+
+#endif /* __MICMEM_IO_H__ */

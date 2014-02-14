@@ -1,14 +1,19 @@
 /*
  * Copyright (C) 2014 PathScale Inc. All Rights Reserved.
  */
-
-#include "mic/micmem.h"
-#include "mic/micmem_io.h"
-#include <linux/mutex.h>
-
+ 
 /* Functions that have to do with keeping the kernel-side state of data
  * structures.
  */
+
+#include "mic/micmem.h"
+#include "mic/micmem_io.h"
+#include <linux/slab.h>
+#include <linux/fs.h>
+
+#ifdef CONFIG_MK1OM
+
+#include <linux/mutex.h>
 
 #define err_page_align(var, name) ({ \
 	if (!IS_ALIGNED(var, PAGE_SIZE)) { \
@@ -346,40 +351,6 @@ int __micmem_host2dev(struct mic_fd_data *fd_data, uint32_t bdnum,
 		flags);
 }
 
-int micmem_fdopen(struct file *filp)
-{
-	struct mic_fd_data *fd_data;
-
-	fd_data = kzalloc(sizeof(*fd_data), GFP_KERNEL);
-	if (!fd_data)
-		return -ENOMEM;
-
-	INIT_LIST_HEAD(&(fd_data->range_list));
-	INIT_LIST_HEAD(&(fd_data->pinned_list));
-	filp->private_data = (void*)fd_data;
-	return 0;
-}
-
-int micmem_fdclose(struct file *filp)
-{
-	struct mic_fd_data *fd_data = filp->private_data;
-	int i;
-	int err;
-	BUG_ON(!fd_data);
-
-	for (i = 0; i < MAX_BOARD_SUPPORTED; i++) {
-		if (fd_data->mem_ctx[i]) {
-			if ((err = __micmem_closedev(fd_data, i))) {
-				printk(KERN_ERR "Did not cleanly close device %d", i);
-				BUG();
-			}
-		}
-	}
-	micmem_cleanup_pinnings(fd_data);
-	kfree(fd_data);
-	return 0;
-}
-
 /* Part of ioctl function which executes within a critical section */
 static int micmem_ioctl_inner(struct file *filp, uint32_t cmd, uint64_t arg)
 {
@@ -509,13 +480,13 @@ static int micmem_ioctl_inner(struct file *filp, uint32_t cmd, uint64_t arg)
 	}
 	return status;
 }
-
+#endif /* CONFIG_MK1OM */
 
 /* Base ioctl function */
 int micmem_ioctl(struct file *filp, uint32_t cmd, uint64_t arg)
 {
 	int status = 0;
-
+#ifdef CONFIG_MK1OM
 	switch (cmd) {
 	case IOCTL_MICMEM_OPENDEV:
 	case IOCTL_MICMEM_CLOSEDEV:
@@ -536,5 +507,46 @@ int micmem_ioctl(struct file *filp, uint32_t cmd, uint64_t arg)
 		status = -EINVAL;
 		break;
 	}
+#else
+	printk("Invalid IOCTL");
+	status = -EINVAL;
+#endif
 	return status;
+}
+
+
+int micmem_fdopen(struct file *filp)
+{
+	struct mic_fd_data *fd_data;
+
+	fd_data = kzalloc(sizeof(*fd_data), GFP_KERNEL);
+	if (!fd_data)
+		return -ENOMEM;
+#ifdef CONFIG_MK1OM
+	INIT_LIST_HEAD(&(fd_data->range_list));
+	INIT_LIST_HEAD(&(fd_data->pinned_list));
+#endif /* CONFIG_MK1OM */
+	filp->private_data = (void*)fd_data;
+	return 0;
+}
+
+int micmem_fdclose(struct file *filp)
+{
+	struct mic_fd_data *fd_data = filp->private_data;
+	int i;
+	int err;
+	BUG_ON(!fd_data);
+#ifdef CONFIG_MK1OM
+	for (i = 0; i < MAX_BOARD_SUPPORTED; i++) {
+		if (fd_data->mem_ctx[i]) {
+			if ((err = __micmem_closedev(fd_data, i))) {
+				printk(KERN_ERR "Did not cleanly close device %d", i);
+				BUG();
+			}
+		}
+	}
+	micmem_cleanup_pinnings(fd_data);
+#endif /* CONFIG_MK1OM */
+	kfree(fd_data);
+	return 0;
 }

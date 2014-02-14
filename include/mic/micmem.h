@@ -8,11 +8,13 @@
  * for their exclusive use. Using this functionality together with a full MPSS
  * stack may lead to exhaustion of available DMA channels.
  * This code has been tested to work on Knight's Corner devices only.
- * Not threadsafe.
+ * This basic library is not threadsafe.
  */
 
 #ifndef __MICMEM_H__
 #define __MICMEM_H__
+
+#ifdef CONFIG_MK1OM
 
 #include "mic_common.h"
 #include "micmem_const.h"
@@ -51,5 +53,7 @@ void micmem_unmap_range(mic_ctx_t *mic_ctx, struct dma_mem_range *mem_range);
 void micmem_unpin_range(struct scif_pinned_pages *pinned_pages);
 int micmem_dev2host(struct micmem_ctx *mem_ctx, struct dma_mem_range *dest_mem_range, uint64_t range_offset, uint64_t source_dev, uint64_t size, int flags);
 int micmem_host2dev(struct micmem_ctx *mem_ctx, uint64_t dest_dev, struct dma_mem_range *src_mem_range, uint64_t range_offset, uint64_t size, int flags);
+
+#endif /* CONFIG_MK1OM */
 
 #endif /* __MICMEM_H__ */

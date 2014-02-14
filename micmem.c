@@ -11,6 +11,8 @@
  * Not threadsafe.
  */
 
+#ifdef CONFIG_MK1OM
+
 #include "mic/micmem.h"
 
 #define DMA_TO  (5 * HZ)
@@ -766,3 +768,5 @@ int micmem_host2dev(struct micmem_ctx *mem_ctx, uint64_t dest_dev,
 	return do_xfer(mem_ctx, dest_dev, src_mem_range, range_offset, size,
 		HOST2DEV, flags);
 }
+
+#endif /* CONFIG_MK1OM */

@@ -29,18 +29,19 @@ Future features
 Building
 ========
 
-Building has been tested on Linux kernel 2.6.32 on Red Hat systems nominally supported by MPSS 2.1. Build requirements are kernel header files and gcc.
+Building has been tested on Linux kernel 2.6.32 on Red Hat systems nominally supported by MPSS 2.1. Build requirements are kernel header files and gcc. 
 
 To build:
 
     $ cd kmod
     $ MICARCH=k1om make
 
+The module will compile with MICARCH=l1om, but without any micmem features.
 
-Starting
+Loading
 ========
 
-The module has only been tested on k1om devices. It doesn't contain checks against l1om.
+The module has only been tested on k1om devices.
 Apart from replacing the module, mpss needs to be running (this is TODO).
     /etc/init.d/mpss stop
     rmmod mic
