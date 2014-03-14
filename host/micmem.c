@@ -14,8 +14,10 @@
 #ifdef CONFIG_MK1OM
 
 #include "mic/micmem.h"
+#include "mic/mic_sbox_md.h"
 
 #define DMA_TO  (5 * HZ)
+#define SBOX_OFFSET	0x10000
 
 typedef enum dma_dir {
 	DEV2HOST,
@@ -78,7 +80,7 @@ static inline int wait_for_dma(struct dma_channel *ch, int cookie,
 	while (1 != poll_dma_completion(cookie, ch)) {
 		cpu_relax();
 		if (time_after(jiffies, start + DMA_TO)) {
-			printk("DMA timed out\n");
+			printk(KERN_ERR "DMA timed out\n");
 			return -EBUSY;
 		}
 	}
@@ -622,12 +624,17 @@ int micmem_get_mem_ctx(mic_ctx_t *mic_ctx, struct micmem_ctx *mem_ctx)
 	if (status)
 		return status;
 
-	/* FIXME: Figure out initialization
+	/* FIXME: Assuming uOS has been booted, DCR was reset and must be restored
+	 * before using DMA.
+	 */
+	/* Change ownership of channels 0-5 to host and enable 0-6.
+	 * TODO: why doesn't regular boot enable all?
+	 */
+	mic_sbox_write_mmio(mic_ctx->mmio.va, SBOX_OFFSET + SBOX_DCR, 0x00001555);
 	if ((status = open_dma_device(mic_ctx->bi_id + 1,
-				   mic_ctx->mmio.va + HOST_SBOX_BASE_ADDRESS,
-				   &mic_ctx->dma_handle)))
+			mic_ctx->mmio.va + HOST_SBOX_BASE_ADDRESS,
+			&mic_ctx->dma_handle)))
 		goto put_ref;
-	*/
 
 	status = do_reserve_dma_chan(mic_ctx, &d2h_ch);
 	if (status)
@@ -654,10 +661,9 @@ int micmem_get_mem_ctx(mic_ctx_t *mic_ctx, struct micmem_ctx *mem_ctx)
 	return 0;
 
 close_dev:
-	/* FIXME: init
+	// FIXME: deinit
 	close_dma_device(mic_ctx->bi_id + 1, &mic_ctx->dma_handle);
 put_ref:
-	*/
 	micpm_put_reference(mic_ctx);
 	return status;
 }
@@ -671,8 +677,11 @@ put_ref:
 void micmem_destroy_mem_ctx(struct micmem_ctx *mem_ctx)
 {
 	mic_ctx_t *mic_ctx = mem_ctx->mic_ctx;
-	/* FIXME: init
-	close_dma_device(mic_ctx->bi_id + 1,
+	/* FIXME: deinit -- the deinit sequence is not documented. Reset magic or
+	power cycling may be required.
+	*/
+	printk(KERN_ERR "Card released, reboot may be required\n");
+	/*close_dma_device(mic_ctx->bi_id + 1,
 					 &mic_ctx->dma_handle);
 	*/
 	micpm_put_reference(mic_ctx);
