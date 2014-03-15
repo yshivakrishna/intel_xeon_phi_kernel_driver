@@ -20,11 +20,8 @@ Current features
 Future features
 ===============
 
-- Make new ioctls fully independent of MPSS and device uOS
 - Improve transfer speed
 - Make the code thread-friendly by adding fine-grained locking
-- Restrict new features to k1om architecture
-
 
 Building
 ========
@@ -42,12 +39,23 @@ Loading
 ========
 
 The module has only been tested on k1om devices.
-Apart from replacing the module, mpss needs to be running (this is TODO).
-    /etc/init.d/mpss stop
     rmmod mic
     insmod mic.ko
-    /etc/init.d/mpss start
-    
+
+Running
+=======
+
+IMPORTANT: Not following these instructions might crash your system or render PHI unusable until reboot.
+
+To use micmem functions, an uOS must be loaded to device, e.g.:
+    $ echo "boot:elf:/path/to/uOS" > /sys/class/mic0/state # load binary
+    Write failed: I/Oerror
+    $ cat /sys/class/mic0/post_code # check if binary actually loaded (FF is desired)
+    FF
+
+If Intel-provided uOS image is used, then host system might hang up randomly. To use a custom uOS image, DMA must be prepared (set SBOX_DCR to 0x00001555). This operation must be performed once after every uOS load.
+
+A system with uOS running and DMA enabled may be used with micmem.
 
 User-mode interface
 ===================

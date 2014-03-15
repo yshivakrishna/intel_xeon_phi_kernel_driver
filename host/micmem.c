@@ -630,7 +630,7 @@ int micmem_get_mem_ctx(mic_ctx_t *mic_ctx, struct micmem_ctx *mem_ctx)
 	/* Change ownership of channels 0-5 to host and enable 0-6.
 	 * TODO: why doesn't regular boot enable all?
 	 */
-	mic_sbox_write_mmio(mic_ctx->mmio.va, SBOX_OFFSET + SBOX_DCR, 0x00001555);
+	// mic_sbox_write_mmio(mic_ctx->mmio.va, SBOX_OFFSET + SBOX_DCR, 0x00001555);
 	if ((status = open_dma_device(mic_ctx->bi_id + 1,
 			mic_ctx->mmio.va + HOST_SBOX_BASE_ADDRESS,
 			&mic_ctx->dma_handle)))
